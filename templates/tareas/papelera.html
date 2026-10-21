@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block titulo %}Papelera{% endblock %}
+
+{% block contenido %}
+<h1 class="h4 mb-3">Papelera</h1>
+<div class="table-responsive">
+  <table class="table align-middle">
+    <thead>
+      <tr>
+        <th>Tarea</th>
+        <th>Eliminada por</th>
+        <th>Fecha</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tarea in tareas %}
+        <tr>
+          <td>{{ tarea.nombre }}</td>
+          <td>{{ tarea.eliminada_por }}</td>
+          <td>{{ tarea.eliminada_en|date:"d/m/Y H:i" }}</td>
+          <td class="text-end">
+            <form method="post" action="{% url 'tareas:recuperar' tarea.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-primary">Recuperar</button>
+            </form>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="text-muted">La papelera está vacía.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

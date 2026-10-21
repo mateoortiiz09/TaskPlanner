@@ -12,10 +12,22 @@
     {% block scripts %}{% endblock %}
   </head>
   <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-    <nav class="navbar navbar-dark bg-primary mb-4">
+    <nav class="navbar navbar-expand navbar-dark bg-primary mb-4">
       <div class="container">
-        <span class="navbar-brand">Agenda y Seguimiento de Tareas</span>
+        <a class="navbar-brand" href="{% url 'inicio' %}">Agenda y Seguimiento de Tareas</a>
         {% if user.is_authenticated %}
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item"><a class="nav-link" href="{% url 'tareas:lista' %}">Tareas</a></li>
+            {% if perms.tareas.add_tarea %}
+              <li class="nav-item"><a class="nav-link" href="{% url 'tareas:crear' %}">Nueva tarea</a></li>
+            {% endif %}
+            {% if perms.tareas.eliminar_recuperar_tareas %}
+              <li class="nav-item"><a class="nav-link" href="{% url 'tareas:papelera' %}">Papelera</a></li>
+            {% endif %}
+            {% if user.is_staff %}
+              <li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}">Administración</a></li>
+            {% endif %}
+          </ul>
           <form method="post" action="{% url 'logout' %}" class="d-flex align-items-center gap-3">
             {% csrf_token %}
             <span class="navbar-text">{{ user.email }}</span>

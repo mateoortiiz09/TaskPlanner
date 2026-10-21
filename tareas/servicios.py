@@ -1,0 +1,141 @@
+from django.core.exceptions import PermissionDenied
+from django.db import transaction
+from django.utils import timezone
+
+from tareas.models import (
+    Cumplimiento,
+    EstadoAvance,
+    NivelSensibilidad,
+    ResponsableTarea,
+    Tarea,
+)
+
+
+class OperacionNoPermitida(Exception):
+    """La operación no es válida para el estado actual de la tarea."""
+
+
+class ConflictoDeVersion(Exception):
+    """Otra persona modificó la tarea después de abrir el formulario."""
+
+
+def _exigir(usuario, permiso):
+    if not usuario.has_perm(permiso):
+        raise PermissionDenied
+
+
+def puede_editar(usuario, tarea):
+    """Provisional hasta la fase 10 para las reglas de nivel 3."""
+    if tarea.eliminada or tarea.estado == EstadoAvance.COMPLETADA:
+        return False
+    if not usuario.has_perm("tareas.change_tarea"):
+        return False
+    if (
+        tarea.nivel_sensibilidad == NivelSensibilidad.ALTAMENTE_SENSIBLE
+        and not usuario.has_perm("tareas.reclasificar_sensibilidad")
+    ):
+        return False
+    return True
+
+
+def _sincronizar_responsables(tarea, responsables):
+    nuevos = {usuario.pk: usuario for usuario in responsables}
+    tarea.asignaciones.exclude(usuario_id__in=nuevos).delete()
+    existentes = set(tarea.asignaciones.values_list("usuario_id", flat=True))
+    for pk, usuario in nuevos.items():
+        if pk not in existentes:
+            ResponsableTarea.objects.create(tarea=tarea, usuario=usuario)
+
+
+@transaction.atomic
+def crear_tarea(usuario, datos, responsables):
+    _exigir(usuario, "tareas.add_tarea")
+    if datos.get("nivel_sensibilidad") == NivelSensibilidad.ALTAMENTE_SENSIBLE:
+        _exigir(usuario, "tareas.reclasificar_sensibilidad")
+    tarea = Tarea.objects.create(creada_por=usuario, **datos)
+    _sincronizar_responsables(tarea, responsables)
+    return tarea
+
+
+@transaction.atomic
+def actualizar_tarea(usuario, tarea_id, datos, responsables, version):
+    tarea = Tarea.objects.select_for_update().get(pk=tarea_id)
+    if not puede_editar(usuario, tarea):
+        raise PermissionDenied
+    if tarea.version != version:
+        raise ConflictoDeVersion
+    nuevo_nivel = datos.get("nivel_sensibilidad", tarea.nivel_sensibilidad)
+    if nuevo_nivel != tarea.nivel_sensibilidad:
+        _exigir(usuario, "tareas.reclasificar_sensibilidad")
+    for campo, valor in datos.items():
+        setattr(tarea, campo, valor)
+    tarea.version += 1
+    tarea.save()
+    _sincronizar_responsables(tarea, responsables)
+    return tarea
+
+
+@transaction.atomic
+def cambiar_estado(usuario, tarea_id, nuevo_estado):
+    _exigir(usuario, "tareas.cambiar_estado")
+    tarea = Tarea.objects.select_for_update().get(pk=tarea_id)
+    if tarea.eliminada:
+        raise OperacionNoPermitida("La tarea está eliminada.")
+    if tarea.estado == EstadoAvance.COMPLETADA:
+        raise OperacionNoPermitida("Una tarea completada no puede cambiar de estado.")
+    if nuevo_estado == EstadoAvance.COMPLETADA:
+        return completar_tarea(usuario, tarea_id)
+    if nuevo_estado not in (EstadoAvance.PENDIENTE, EstadoAvance.EN_PROCESO):
+        raise OperacionNoPermitida("Estado no válido.")
+    tarea.estado = nuevo_estado
+    tarea.version += 1
+    tarea.save(update_fields=["estado", "version", "actualizada_en"])
+    return tarea
+
+
+@transaction.atomic
+def completar_tarea(usuario, tarea_id, hoy=None):
+    _exigir(usuario, "tareas.completar_tareas")
+    tarea = Tarea.objects.select_for_update().get(pk=tarea_id)
+    if tarea.eliminada:
+        raise OperacionNoPermitida("La tarea está eliminada.")
+    if tarea.estado == EstadoAvance.COMPLETADA:
+        raise OperacionNoPermitida("La tarea ya está completada.")
+    hoy = hoy or timezone.localdate()
+    tarea.estado = EstadoAvance.COMPLETADA
+    tarea.fecha_finalizacion = hoy
+    tarea.completada_por = usuario
+    tarea.cumplimiento = (
+        Cumplimiento.DENTRO_DEL_PLAZO
+        if hoy <= tarea.fecha_limite
+        else Cumplimiento.FUERA_DEL_PLAZO
+    )
+    tarea.version += 1
+    tarea.save()
+    return tarea
+
+
+@transaction.atomic
+def eliminar_tarea(usuario, tarea_id):
+    _exigir(usuario, "tareas.eliminar_recuperar_tareas")
+    tarea = Tarea.objects.select_for_update().get(pk=tarea_id)
+    if tarea.eliminada:
+        raise OperacionNoPermitida("La tarea ya está eliminada.")
+    tarea.eliminada_en = timezone.now()
+    tarea.eliminada_por = usuario
+    tarea.version += 1
+    tarea.save()
+    return tarea
+
+
+@transaction.atomic
+def recuperar_tarea(usuario, tarea_id):
+    _exigir(usuario, "tareas.eliminar_recuperar_tareas")
+    tarea = Tarea.objects.select_for_update().get(pk=tarea_id)
+    if not tarea.eliminada:
+        raise OperacionNoPermitida("La tarea no está eliminada.")
+    tarea.eliminada_en = None
+    tarea.eliminada_por = None
+    tarea.version += 1
+    tarea.save()
+    return tarea

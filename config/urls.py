@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.urls import path
+from django.urls import include, path
 from django.views.generic import TemplateView
 
 from cuentas.views import CambiarContrasenaView
@@ -21,5 +21,6 @@ urlpatterns = [
         CambiarContrasenaView.as_view(),
         name="cambiar_contrasena",
     ),
+    path("tareas/", include("tareas.urls")),
     path("", TemplateView.as_view(template_name="inicio.html"), name="inicio"),
 ]
