@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tareas_extras %}
 
 {% block titulo %}{{ tarea.nombre }}{% endblock %}
 
@@ -7,6 +8,7 @@
   <div>
     <h1 class="h4 mb-1">{{ tarea.nombre }}</h1>
     <span class="badge text-bg-secondary">{{ tarea.get_estado_display }}</span>
+    <span class="badge {{ tarea|situacion_clase }}">{{ tarea|situacion }}</span>
     <span class="badge text-bg-light border">{{ tarea.get_nivel_sensibilidad_display }}</span>
   </div>
   <div class="d-flex gap-2">
@@ -55,7 +57,9 @@
   <dd class="col-sm-9">{{ tarea.fecha_asignacion|date:"d/m/Y" }}</dd>
 
   <dt class="col-sm-3">Fecha límite</dt>
-  <dd class="col-sm-9">{{ tarea.fecha_limite|date:"d/m/Y" }}</dd>
+  <dd class="col-sm-9">
+    {{ tarea.fecha_limite|date:"d/m/Y" }}{% if tarea|texto_vencimiento %} <span class="text-muted">· {{ tarea|texto_vencimiento }}</span>{% endif %}
+  </dd>
 
   <dt class="col-sm-3">Creada por</dt>
   <dd class="col-sm-9">{{ tarea.creada_por }}</dd>

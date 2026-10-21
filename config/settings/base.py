@@ -185,3 +185,5 @@ UNFOLD = {
         },
     },
 }
+
+DIAS_EN_RIESGO = env_int("DIAS_EN_RIESGO", 2)
