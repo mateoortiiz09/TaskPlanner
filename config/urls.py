@@ -6,7 +6,7 @@ from django.views.generic import TemplateView
 from cuentas.views import CambiarContrasenaView
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("gestion-interna/", admin.site.urls),
     path(
         "ingresar/",
         auth_views.LoginView.as_view(
