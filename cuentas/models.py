@@ -11,6 +11,7 @@ class Area(models.Model):
         verbose_name = "área"
         verbose_name_plural = "áreas"
         ordering = ["nombre"]
+        permissions = [("gestionar_areas", "Puede gestionar áreas")]
 
     def __str__(self):
         return self.nombre
@@ -65,6 +66,11 @@ class Usuario(AbstractUser):
     class Meta:
         verbose_name = "usuario"
         verbose_name_plural = "usuarios"
+        permissions = [
+            ("gestionar_usuarios", "Puede gestionar usuarios"),
+            ("restablecer_contrasenas", "Puede restablecer contraseñas"),
+            ("configurar_parametros", "Puede configurar parámetros del sistema"),
+        ]
         constraints = [
             models.UniqueConstraint(
                 Lower("email"), name="usuario_email_unico_sin_mayusculas"

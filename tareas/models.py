@@ -97,6 +97,17 @@ class Tarea(models.Model):
         verbose_name = "tarea"
         verbose_name_plural = "tareas"
         ordering = ["fecha_limite", "id"]
+        permissions = [
+            ("ver_todas_las_tareas", "Puede ver las tareas de todas las áreas"),
+            ("cambiar_estado", "Puede cambiar el estado de avance"),
+            ("completar_tareas", "Puede completar tareas"),
+            ("eliminar_recuperar_tareas", "Puede eliminar y recuperar tareas"),
+            ("conceder_nivel3", "Puede conceder acceso a nivel 3"),
+            (
+                "reclasificar_sensibilidad",
+                "Puede reclasificar el nivel de sensibilidad",
+            ),
+        ]
         indexes = [
             models.Index(
                 fields=["eliminada_en", "estado", "fecha_limite"],

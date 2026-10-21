@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block titulo %}Cambiar contraseña{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <h1 class="h4 mb-3">Cambiar contraseña</h1>
+    {% if user.debe_cambiar_contrasena %}
+      <div class="alert alert-warning">Debes cambiar tu contraseña temporal antes de continuar.</div>
+    {% endif %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for campo in form %}
+        <div class="mb-3">
+          <label class="form-label" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+          {{ campo }}
+          {% for error in campo.errors %}
+            <div class="text-danger small">{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary w-100">Guardar contraseña</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

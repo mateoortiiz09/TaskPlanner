@@ -59,6 +59,10 @@ class EventoAuditoria(models.Model):
         verbose_name = "evento de auditoría"
         verbose_name_plural = "eventos de auditoría"
         ordering = ["-fecha_hora", "-id"]
+        permissions = [
+            ("ver_auditoria_tecnica", "Puede ver la auditoría técnica"),
+            ("ver_auditoria_tareas", "Puede ver la auditoría de tareas"),
+        ]
         indexes = [
             models.Index(
                 fields=["tipo_recurso", "recurso_id", "fecha_hora"],

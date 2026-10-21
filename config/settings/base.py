@@ -71,6 +71,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "cuentas.middleware.DuracionMaximaSesionMiddleware",
     "django.contrib.auth.middleware.LoginRequiredMiddleware",
+    "cuentas.middleware.CambioObligatorioContrasenaMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "axes.middleware.AxesMiddleware",
