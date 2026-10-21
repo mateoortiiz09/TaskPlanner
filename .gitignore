@@ -224,3 +224,6 @@ __marimo__/
 # Archivos del sistema Windows
 desktop.ini
 Thumbs.db
+
+# Traducciones propias compiladas (sí se versionan)
+!locale/**/*.mo

@@ -1,12 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import (
-    AdminPasswordChangeForm,
     BaseUserCreationForm,
-    UserChangeForm,
 )
 from django.contrib.auth.models import Group
 from django.core.exceptions import PermissionDenied
+from unfold.admin import ModelAdmin
+from unfold.forms import AdminPasswordChangeForm as UnfoldAdminPasswordChangeForm
+from unfold.forms import UserChangeForm as UnfoldUserChangeForm
 
 from cuentas.models import Area, Usuario
 from cuentas.roles import ADMINISTRADOR
@@ -27,7 +28,7 @@ class UsuarioCreacionForm(BaseUserCreationForm):
         fields = ("email", "first_name", "last_name", "area")
 
 
-class UsuarioCambioForm(UserChangeForm):
+class UsuarioCambioForm(UnfoldUserChangeForm):
     class Meta:
         model = Usuario
         fields = "__all__"
@@ -52,14 +53,14 @@ class UsuarioCambioForm(UserChangeForm):
         return datos
 
 
-class RestablecerContrasenaForm(AdminPasswordChangeForm):
+class RestablecerContrasenaForm(UnfoldAdminPasswordChangeForm):
     def save(self, commit=True):
         self.user.debe_cambiar_contrasena = True
         return super().save(commit=commit)
 
 
 @admin.register(Usuario)
-class UsuarioAdmin(UserAdmin):
+class UsuarioAdmin(UserAdmin, ModelAdmin):
     form = UsuarioCambioForm
     add_form = UsuarioCreacionForm
     change_password_form = RestablecerContrasenaForm
@@ -118,7 +119,7 @@ class UsuarioAdmin(UserAdmin):
 
 
 @admin.register(Area)
-class AreaAdmin(admin.ModelAdmin):
+class AreaAdmin(ModelAdmin):
     list_display = ("nombre", "activa")
     list_filter = ("activa",)
     search_fields = ("nombre",)

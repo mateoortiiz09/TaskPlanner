@@ -6,9 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block titulo %}TaskPlanner{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
     {% block estilos %}{% endblock %}
     <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}" defer></script>
     <script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
+    <script src="{% static 'js/app.js' %}" defer></script>
     {% block scripts %}{% endblock %}
   </head>
   <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
@@ -17,7 +19,7 @@
         <a class="navbar-brand" href="{% url 'inicio' %}">Agenda y Seguimiento de Tareas</a>
         {% if user.is_authenticated %}
           <ul class="navbar-nav me-auto">
-            <li class="nav-item"><a class="nav-link" href="{% url 'tareas:lista' %}">Tareas</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'tareas:lista' %}">{% if perms.tareas.ver_todas_las_tareas %}Tareas{% else %}Tareas asignadas{% endif %}</a></li>
             {% if perms.tareas.add_tarea %}
               <li class="nav-item"><a class="nav-link" href="{% url 'tareas:crear' %}">Nueva tarea</a></li>
             {% endif %}
@@ -36,15 +38,11 @@
         {% endif %}
       </div>
     </nav>
-    {% if messages %}
-      <div class="container mt-3" aria-live="polite">
-        {% for message in messages %}
-          <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">
-            {{ message }}
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-    {% block contenido %}{% endblock %}
+    <main class="container">
+      {% for message in messages %}
+        <div class="alert alert-info">{{ message }}</div>
+      {% endfor %}
+      {% block contenido %}{% endblock %}
+    </main>
   </body>
 </html>

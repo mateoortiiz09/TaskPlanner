@@ -1,0 +1,19 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "Save as new"
+msgstr "Guardar como nuevo"
+
+msgid "Save and add another"
+msgstr "Guardar y añadir otro"
+
+msgid "Save and continue editing"
+msgstr "Guardar y continuar editando"
+
+msgid "Save and view"
+msgstr "Guardar y ver"

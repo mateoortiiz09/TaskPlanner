@@ -4,7 +4,7 @@
 
 {% block contenido %}
 <div class="d-flex justify-content-between align-items-center mb-2">
-  <h1 class="h4 mb-0">Tareas</h1>
+  <h1 class="h4 mb-0">{% if perms.tareas.ver_todas_las_tareas %}Tareas{% else %}Tareas asignadas{% endif %}</h1>
   {% if perms.tareas.add_tarea %}
     <a class="btn btn-primary" href="{% url 'tareas:crear' %}">Nueva tarea</a>
   {% endif %}
@@ -23,7 +23,7 @@
     </thead>
     <tbody>
       {% for tarea in tareas %}
-        <tr>
+        <tr class="fila-clicable" data-href="{% url 'tareas:detalle' tarea.pk %}" tabindex="0">
           <td><a href="{% url 'tareas:detalle' tarea.pk %}">{{ tarea.nombre }}</a></td>
           <td>
             {% for asignacion in tarea.asignaciones.all %}

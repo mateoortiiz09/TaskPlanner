@@ -52,6 +52,15 @@ class TareaForm(forms.ModelForm):
             "prioridad": "Prioridad",
             "nivel_sensibilidad": "Nivel de sensibilidad",
         }
+        help_texts = {
+            "nivel_sensibilidad": (
+                "Nivel 1: información interna del día a día. "
+                "Nivel 2: confidencial (contratos, presupuestos, actas). "
+                "Nivel 3: altamente sensible (datos de clientes, nómina, "
+                "información financiera o jurídica); solo la ven la Subgerente "
+                "y quienes ella autorice. Ante la duda, elige el nivel más alto."
+            ),
+        }
         widgets = {
             "nombre": forms.TextInput(attrs={"class": "form-control"}),
             "descripcion": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
@@ -79,6 +88,11 @@ class TareaForm(forms.ModelForm):
                     for opcion in NivelSensibilidad.choices
                     if opcion[0] != NivelSensibilidad.ALTAMENTE_SENSIBLE
                 ]
+        if not self.fields["responsables"].queryset.exists():
+            self.fields["responsables"].help_text = (
+                "No hay líderes disponibles. En Administración, el usuario debe "
+                "estar activo, tener un área activa y el grupo «Líder de área»."
+            )
 
     def datos_tarea(self):
         return {campo: self.cleaned_data[campo] for campo in CAMPOS_TAREA}
