@@ -38,6 +38,9 @@ class UsuarioManager(BaseUserManager):
         campos.setdefault("is_superuser", True)
         return self._crear(email, password, **campos)
 
+    def get_by_natural_key(self, username):
+        return self.get(**{f"{self.model.USERNAME_FIELD}__iexact": username})
+
 
 class Usuario(AbstractUser):
     username = None

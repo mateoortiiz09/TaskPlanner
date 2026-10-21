@@ -12,6 +12,18 @@
     {% block scripts %}{% endblock %}
   </head>
   <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <nav class="navbar navbar-dark bg-primary mb-4">
+      <div class="container">
+        <span class="navbar-brand">Agenda y Seguimiento de Tareas</span>
+        {% if user.is_authenticated %}
+          <form method="post" action="{% url 'logout' %}" class="d-flex align-items-center gap-3">
+            {% csrf_token %}
+            <span class="navbar-text">{{ user.email }}</span>
+            <button type="submit" class="btn btn-outline-light btn-sm">Salir</button>
+          </form>
+        {% endif %}
+      </div>
+    </nav>
     {% if messages %}
       <div class="container mt-3" aria-live="polite">
         {% for message in messages %}
