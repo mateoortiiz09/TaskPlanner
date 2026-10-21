@@ -37,3 +37,12 @@ def texto_vencimiento(tarea):
     if dias == 1:
         return "Vence mañana"
     return f"Faltan {dias} días"
+
+
+@register.filter
+def areas_de(tarea):
+    areas = []
+    for asignacion in tarea.asignaciones.all():
+        if asignacion.area not in areas:
+            areas.append(asignacion.area)
+    return ", ".join(str(area) for area in areas)

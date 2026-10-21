@@ -1,46 +1,77 @@
 {% extends "base.html" %}
 {% load tareas_extras %}
 
-{% block titulo %}Tareas{% endblock %}
+{% block titulo %}{% if perms.tareas.ver_todas_las_tareas %}Seguimiento de tareas{% else %}Tareas asignadas{% endif %}{% endblock %}
 
 {% block contenido %}
-<div class="d-flex justify-content-between align-items-center mb-2">
-  <h1 class="h4 mb-0">{% if perms.tareas.ver_todas_las_tareas %}Tareas{% else %}Tareas asignadas{% endif %}</h1>
+{% url 'tareas:lista' as url_panel %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">{% if perms.tareas.ver_todas_las_tareas %}Seguimiento de tareas{% else %}Tareas asignadas{% endif %}</h1>
   {% if perms.tareas.add_tarea %}
     <a class="btn btn-primary" href="{% url 'tareas:crear' %}">Nueva tarea</a>
   {% endif %}
 </div>
-<p class="text-muted small">Listado provisional. El panel de seguimiento con filtros se construye en la fase 9.</p>
-<div class="table-responsive">
-  <table class="table table-hover align-middle">
-    <thead>
-      <tr>
-        <th>Tarea</th>
-        <th>Responsables</th>
-        <th>Prioridad</th>
-        <th>Fecha límite</th>
-        <th>Estado</th>
-        <th>Situación</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for tarea in tareas %}
-        <tr class="fila-clicable" data-href="{% url 'tareas:detalle' tarea.pk %}" tabindex="0">
-          <td><a href="{% url 'tareas:detalle' tarea.pk %}">{{ tarea.nombre }}</a></td>
-          <td>
-            {% for asignacion in tarea.asignaciones.all %}
-              {{ asignacion.usuario.get_full_name|default:asignacion.usuario.email }} ({{ asignacion.area }}){% if not forloop.last %}, {% endif %}
-            {% endfor %}
-          </td>
-          <td>{{ tarea.get_prioridad_display }}</td>
-          <td>{{ tarea.fecha_limite|date:"d/m/Y" }}</td>
-          <td>{{ tarea.get_estado_display }}</td>
-          <td><span class="badge {{ tarea|situacion_clase }}">{{ tarea|situacion }}</span></td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="6" class="text-muted">No hay tareas.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <a class="card h-100 text-decoration-none border-danger" href="{{ url_panel }}?situacion=ATRASADA">
+      <div class="card-body">
+        <div class="small fw-semibold text-danger">Atrasadas</div>
+        <div class="fs-3 fw-bold text-body">{{ contadores.atrasadas }}</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-6 col-lg-3">
+    <a class="card h-100 text-decoration-none border-warning" href="{{ url_panel }}?vence=hoy">
+      <div class="card-body">
+        <div class="small fw-semibold text-warning-emphasis">Vencen hoy</div>
+        <div class="fs-3 fw-bold text-body">{{ contadores.vencen_hoy }}</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-6 col-lg-3">
+    <a class="card h-100 text-decoration-none border-warning" href="{{ url_panel }}?situacion=EN_RIESGO">
+      <div class="card-body">
+        <div class="small fw-semibold text-warning-emphasis">En riesgo</div>
+        <div class="fs-3 fw-bold text-body">{{ contadores.en_riesgo }}</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-6 col-lg-3">
+    <a class="card h-100 text-decoration-none border-secondary" href="{{ url_panel }}?estado=PENDIENTE">
+      <div class="card-body">
+        <div class="small fw-semibold text-secondary">Pendientes</div>
+        <div class="fs-3 fw-bold text-body">{{ contadores.pendientes }}</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<form method="get" action="{{ url_panel }}" class="row g-2 align-items-end mb-3"
+      hx-get="{{ url_panel }}" hx-target="#tabla-tareas" hx-push-url="true" hx-trigger="change, submit">
+  {% for campo in form.visible_fields %}
+    {% if campo.name == "completadas" %}
+      <div class="col-auto">
+        <div class="form-check mb-1">
+          {{ campo }}
+          <label class="form-check-label small" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+        </div>
+      </div>
+    {% else %}
+      <div class="col-sm-6 col-lg-2">
+        <label class="form-label small mb-1" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+        {{ campo }}
+      </div>
+    {% endif %}
+  {% endfor %}
+  {% for campo in form.hidden_fields %}{{ campo }}{% endfor %}
+  <div class="col-auto">
+    <button type="submit" class="btn btn-sm btn-outline-primary">Filtrar</button>
+    <a class="btn btn-sm btn-link" href="{{ url_panel }}">Limpiar</a>
+  </div>
+</form>
+
+<div id="tabla-tareas">
+  {% include "tareas/_tabla.html" %}
 </div>
 {% endblock %}

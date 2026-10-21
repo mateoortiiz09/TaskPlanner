@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
-from django.views.generic import TemplateView
 
 from cuentas.views import CambiarContrasenaView
+from tareas import views as tareas_views
 
 urlpatterns = [
     path("gestion-interna/", admin.site.urls),
@@ -22,5 +22,5 @@ urlpatterns = [
         name="cambiar_contrasena",
     ),
     path("tareas/", include("tareas.urls")),
-    path("", TemplateView.as_view(template_name="inicio.html"), name="inicio"),
+    path("", tareas_views.lista, name="inicio"),
 ]

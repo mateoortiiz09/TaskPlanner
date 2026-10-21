@@ -1,0 +1,61 @@
+{% load tareas_extras %}
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead>
+      <tr>
+        <th>Tarea</th>
+        <th>Áreas</th>
+        <th>Responsables</th>
+        <th>Prioridad</th>
+        <th>Fecha límite</th>
+        <th>Estado</th>
+        <th>Situación</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tarea in pagina %}
+        <tr class="fila-clicable" data-href="{% url 'tareas:detalle' tarea.pk %}" tabindex="0">
+          <td><a href="{% url 'tareas:detalle' tarea.pk %}">{{ tarea.nombre }}</a></td>
+          <td>{{ tarea|areas_de }}</td>
+          <td>
+            {% for asignacion in tarea.asignaciones.all %}
+              {{ asignacion.usuario.get_full_name|default:asignacion.usuario.email }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </td>
+          <td>{{ tarea.get_prioridad_display }}</td>
+          <td>
+            {{ tarea.fecha_limite|date:"d/m/Y" }}
+            {% if tarea|texto_vencimiento %}<div class="small text-muted">{{ tarea|texto_vencimiento }}</div>{% endif %}
+          </td>
+          <td>{{ tarea.get_estado_display }}</td>
+          <td><span class="badge {{ tarea|situacion_clase }}">{{ tarea|situacion }}</span></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7" class="text-muted">No hay tareas que coincidan con los filtros.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="d-flex justify-content-between align-items-center">
+  <span class="text-muted small">{{ pagina.paginator.count }} tarea{{ pagina.paginator.count|pluralize }}</span>
+  {% if pagina.paginator.num_pages > 1 %}
+    <nav aria-label="Paginación">
+      <ul class="pagination pagination-sm mb-0">
+        {% if pagina.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="{% querystring page=pagina.previous_page_number %}"
+               hx-get="{% querystring page=pagina.previous_page_number %}" hx-target="#tabla-tareas" hx-push-url="true">Anterior</a>
+          </li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span></li>
+        {% if pagina.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="{% querystring page=pagina.next_page_number %}"
+               hx-get="{% querystring page=pagina.next_page_number %}" hx-target="#tabla-tareas" hx-push-url="true">Siguiente</a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+</div>

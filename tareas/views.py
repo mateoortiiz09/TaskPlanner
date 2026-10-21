@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -8,18 +9,38 @@ from tareas import servicios
 from tareas.consultas import tareas_visibles
 from tareas.forms import TareaForm
 from tareas.models import EstadoAvance
+from tareas.panel import (
+    FiltroPanelForm,
+    aplicar_filtros,
+    contar_por_situacion,
+    ordenar_por_urgencia,
+)
+from tareas.vencimientos import hoy_local
 
 ESTADOS_EDITABLES = [
     (estado.value, estado.label)
     for estado in (EstadoAvance.PENDIENTE, EstadoAvance.EN_PROCESO)
 ]
+TAREAS_POR_PAGINA = 25
 
 
 def lista(request):
-    tareas = tareas_visibles(request.user).prefetch_related(
-        "asignaciones__usuario", "asignaciones__area"
-    )
-    return render(request, "tareas/lista.html", {"tareas": tareas})
+    hoy = hoy_local()
+    visibles = tareas_visibles(request.user)
+    form = FiltroPanelForm(request.GET or None, usuario=request.user)
+    filtros = form.cleaned_data if form.is_valid() else {}
+    tareas = ordenar_por_urgencia(
+        aplicar_filtros(visibles, filtros, hoy), hoy
+    ).prefetch_related("asignaciones__usuario", "asignaciones__area")
+    pagina = Paginator(tareas, TAREAS_POR_PAGINA).get_page(request.GET.get("page"))
+    contexto = {
+        "form": form,
+        "pagina": pagina,
+        "contadores": contar_por_situacion(visibles, hoy),
+    }
+    if request.headers.get("HX-Request") == "true":
+        return render(request, "tareas/_tabla.html", contexto)
+    return render(request, "tareas/lista.html", contexto)
 
 
 @permission_required("tareas.add_tarea", raise_exception=True)
