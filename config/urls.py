@@ -22,5 +22,6 @@ urlpatterns = [
         name="cambiar_contrasena",
     ),
     path("tareas/", include("tareas.urls")),
+    path("auditoria/", include("auditoria.urls")),
     path("", tareas_views.lista, name="inicio"),
 ]

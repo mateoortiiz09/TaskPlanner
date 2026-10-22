@@ -2,6 +2,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.utils import timezone
 
+from auditoria.servicios import registrar_evento
 from autorizacion.reglas import puede_editar  # noqa: F401
 from tareas.models import (
     Cumplimiento,
@@ -40,6 +41,12 @@ def crear_tarea(usuario, datos, responsables):
         _exigir(usuario, "tareas.reclasificar_sensibilidad")
     tarea = Tarea.objects.create(creada_por=usuario, **datos)
     _sincronizar_responsables(tarea, responsables)
+    registrar_evento(
+        "tarea.creada",
+        actor=usuario,
+        tarea_id=tarea.pk,
+        restringida=tarea.restringida,
+    )
     return tarea
 
 
@@ -62,6 +69,12 @@ def actualizar_tarea(usuario, tarea_id, datos, responsables, version):
         from adjuntos.servicios import cifrar_adjuntos_de_tarea
 
         cifrar_adjuntos_de_tarea(tarea)
+    registrar_evento(
+        "tarea.editada",
+        actor=usuario,
+        tarea_id=tarea.pk,
+        restringida=tarea.restringida,
+    )
     return tarea
 
 
@@ -77,9 +90,17 @@ def cambiar_estado(usuario, tarea_id, nuevo_estado):
         return completar_tarea(usuario, tarea_id)
     if nuevo_estado not in (EstadoAvance.PENDIENTE, EstadoAvance.EN_PROCESO):
         raise OperacionNoPermitida("Estado no válido.")
+    estado_anterior = tarea.estado
     tarea.estado = nuevo_estado
     tarea.version += 1
     tarea.save(update_fields=["estado", "version", "actualizada_en"])
+    registrar_evento(
+        "tarea.estado_cambiado",
+        actor=usuario,
+        tarea_id=tarea.pk,
+        estado_anterior=estado_anterior,
+        estado_nuevo=tarea.estado,
+    )
     return tarea
 
 
@@ -102,6 +123,7 @@ def completar_tarea(usuario, tarea_id, hoy=None):
     )
     tarea.version += 1
     tarea.save()
+    registrar_evento("tarea.completada", actor=usuario, tarea_id=tarea.pk)
     return tarea
 
 
@@ -115,6 +137,7 @@ def eliminar_tarea(usuario, tarea_id):
     tarea.eliminada_por = usuario
     tarea.version += 1
     tarea.save()
+    registrar_evento("tarea.eliminada", actor=usuario, tarea_id=tarea.pk)
     return tarea
 
 
@@ -128,4 +151,5 @@ def recuperar_tarea(usuario, tarea_id):
     tarea.eliminada_por = None
     tarea.version += 1
     tarea.save()
+    registrar_evento("tarea.recuperada", actor=usuario, tarea_id=tarea.pk)
     return tarea

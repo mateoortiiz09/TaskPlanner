@@ -71,6 +71,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "auditoria.contexto.ContextoAuditoriaMiddleware",
     "cuentas.middleware.DuracionMaximaSesionMiddleware",
     "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "cuentas.middleware.CambioObligatorioContrasenaMiddleware",

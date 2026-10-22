@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from auditoria.models import EventoAuditoria
+from auditoria.servicios import registrar_evento
 from cuentas.models import Usuario
 from cuentas.roles import ADMINISTRADOR
 
@@ -35,12 +35,13 @@ class Command(BaseCommand):
         usuario.save()
         usuario.groups.add(Group.objects.get(name=ADMINISTRADOR))
 
-        EventoAuditoria.objects.create(
-            actor_descripcion="consola del servidor",
-            accion="cuentas.recuperar_admin",
-            tipo_recurso="usuario",
-            recurso_id=str(usuario.pk),
-            cambios={"motivo": motivo, "cuenta_creada": creado},
+        registrar_evento(
+            "cuentas.recuperar_admin",
+            recurso_tipo="usuario",
+            recurso_id=usuario.pk,
+            correo=usuario.email,
+            motivo=motivo,
+            cuenta_creada=creado,
         )
 
         accion = "creado" if creado else "reactivado"

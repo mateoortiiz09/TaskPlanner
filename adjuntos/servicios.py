@@ -9,6 +9,7 @@ from django.db import transaction
 
 from adjuntos import almacen, antivirus, cifrado, validacion
 from adjuntos.models import Adjunto, EstadoAnalisis
+from auditoria.servicios import registrar_evento
 
 
 def _guardar_clave(adjunto, clave):
@@ -58,6 +59,14 @@ def subir_adjunto(*, tarea, archivo, usuario):
     try:
         with transaction.atomic():
             adjunto.save()
+            registrar_evento(
+                "adjunto.subido",
+                actor=usuario,
+                tarea_id=tarea.pk,
+                adjunto_id=adjunto.pk,
+                tipo=adjunto.tipo_contenido,
+                tamano=adjunto.tamano_bytes,
+            )
     except Exception:
         almacen.borrar(nombre_interno)
         raise

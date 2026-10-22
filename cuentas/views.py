@@ -2,6 +2,8 @@ from django.contrib import messages
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 
+from auditoria.servicios import registrar_evento
+
 
 class CambiarContrasenaView(PasswordChangeView):
     template_name = "cuentas/cambiar_contrasena.html"
@@ -19,5 +21,8 @@ class CambiarContrasenaView(PasswordChangeView):
         if usuario.debe_cambiar_contrasena:
             usuario.debe_cambiar_contrasena = False
             usuario.save(update_fields=["debe_cambiar_contrasena"])
+        registrar_evento(
+            "usuario.contrasena_cambiada", actor=usuario, usuario_id=usuario.pk
+        )
         messages.success(self.request, "Tu contraseña se actualizó correctamente.")
         return respuesta

@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.http import Http404, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.http import content_disposition_header
 from django.views.decorators.http import require_GET, require_POST
@@ -8,6 +8,7 @@ from django.views.decorators.http import require_GET, require_POST
 from adjuntos import servicios
 from adjuntos.forms import AdjuntoForm
 from adjuntos.models import Adjunto
+from auditoria.servicios import denegar, registrar_evento
 from autorizacion.reglas import puede_adjuntar, puede_ver_contenido, puede_ver_tarea
 from tareas.models import Tarea
 
@@ -20,7 +21,7 @@ def _tarea_activa(pk):
 def subir(request, pk):
     tarea = _tarea_activa(pk)
     if not puede_ver_tarea(request.user, tarea):
-        raise Http404
+        denegar(tarea_id=tarea.pk)
     if not puede_adjuntar(request.user, tarea):
         raise PermissionDenied
     formulario = AdjuntoForm(request.POST, request.FILES)
@@ -44,7 +45,7 @@ def subir(request, pk):
 def descargar(request, pk, adjunto_id):
     tarea = _tarea_activa(pk)
     if not puede_ver_contenido(request.user, tarea):
-        raise Http404
+        denegar(tarea_id=tarea.pk, adjunto_id=adjunto_id)
     adjunto = get_object_or_404(Adjunto, pk=adjunto_id, tarea=tarea)
     datos = servicios.leer_contenido(adjunto)
     respuesta = HttpResponse(datos, content_type=adjunto.tipo_contenido)
@@ -55,4 +56,5 @@ def descargar(request, pk, adjunto_id):
     respuesta["X-Content-Type-Options"] = "nosniff"
     respuesta["Cache-Control"] = "no-store"
     respuesta["Content-Security-Policy"] = "sandbox"
+    registrar_evento("adjunto.descargado", tarea_id=tarea.pk, adjunto_id=adjunto.pk)
     return respuesta

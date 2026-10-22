@@ -5,10 +5,12 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from auditoria.servicios import denegar
+from autorizacion import reglas
 from tareas import servicios
 from tareas.consultas import tareas_visibles
 from tareas.forms import TareaForm
-from tareas.models import EstadoAvance
+from tareas.models import EstadoAvance, Tarea
 from tareas.panel import (
     FiltroPanelForm,
     aplicar_filtros,
@@ -59,14 +61,17 @@ def crear(request):
 
 def detalle(request, pk):
     tarea = get_object_or_404(
-        tareas_visibles(request.user)
+        Tarea.objects.filter(eliminada_en__isnull=True)
         .select_related("creada_por", "completada_por")
         .prefetch_related("asignaciones__usuario", "asignaciones__area"),
         pk=pk,
     )
+    if not reglas.puede_ver_tarea(request.user, tarea):
+        denegar(tarea_id=tarea.pk)
     contexto = {
         "tarea": tarea,
-        "puede_editar": servicios.puede_editar(request.user, tarea),
+        "contenido_visible": reglas.puede_ver_contenido(request.user, tarea),
+        "puede_editar": reglas.puede_editar(request.user, tarea),
         "estados": ESTADOS_EDITABLES,
     }
     return render(request, "tareas/detalle.html", contexto)
@@ -75,9 +80,14 @@ def detalle(request, pk):
 @permission_required("tareas.change_tarea", raise_exception=True)
 def editar(request, pk):
     tarea = get_object_or_404(
-        tareas_visibles(request.user).prefetch_related("asignaciones"), pk=pk
+        Tarea.objects.filter(eliminada_en__isnull=True).prefetch_related(
+            "asignaciones"
+        ),
+        pk=pk,
     )
-    if not servicios.puede_editar(request.user, tarea):
+    if not reglas.puede_ver_tarea(request.user, tarea):
+        denegar(tarea_id=tarea.pk)
+    if not reglas.puede_editar(request.user, tarea):
         raise PermissionDenied
     form = TareaForm(request.POST or None, instance=tarea, usuario=request.user)
     if request.method == "POST" and form.is_valid():
@@ -106,7 +116,14 @@ def editar(request, pk):
 @require_POST
 @permission_required("tareas.cambiar_estado", raise_exception=True)
 def cambiar_estado(request, pk):
-    tarea = get_object_or_404(tareas_visibles(request.user), pk=pk)
+    tarea = get_object_or_404(
+        Tarea.objects.filter(eliminada_en__isnull=True).prefetch_related(
+            "asignaciones"
+        ),
+        pk=pk,
+    )
+    if not reglas.puede_ver_tarea(request.user, tarea):
+        denegar(tarea_id=tarea.pk)
     try:
         servicios.cambiar_estado(request.user, tarea.pk, request.POST.get("estado"))
     except servicios.OperacionNoPermitida as error:
@@ -129,7 +146,14 @@ def _confirmar(request, tarea, titulo, mensaje, boton, clase_boton):
 
 @permission_required("tareas.completar_tareas", raise_exception=True)
 def completar(request, pk):
-    tarea = get_object_or_404(tareas_visibles(request.user), pk=pk)
+    tarea = get_object_or_404(
+        Tarea.objects.filter(eliminada_en__isnull=True).prefetch_related(
+            "asignaciones"
+        ),
+        pk=pk,
+    )
+    if not reglas.puede_ver_tarea(request.user, tarea):
+        denegar(tarea_id=tarea.pk)
     if request.method == "POST":
         try:
             servicios.completar_tarea(request.user, tarea.pk)
@@ -151,7 +175,14 @@ def completar(request, pk):
 
 @permission_required("tareas.eliminar_recuperar_tareas", raise_exception=True)
 def eliminar(request, pk):
-    tarea = get_object_or_404(tareas_visibles(request.user), pk=pk)
+    tarea = get_object_or_404(
+        Tarea.objects.filter(eliminada_en__isnull=True).prefetch_related(
+            "asignaciones"
+        ),
+        pk=pk,
+    )
+    if not reglas.puede_ver_tarea(request.user, tarea):
+        denegar(tarea_id=tarea.pk)
     if request.method == "POST":
         try:
             servicios.eliminar_tarea(request.user, tarea.pk)
@@ -182,7 +213,14 @@ def papelera(request):
 @require_POST
 @permission_required("tareas.eliminar_recuperar_tareas", raise_exception=True)
 def recuperar(request, pk):
-    tarea = get_object_or_404(tareas_visibles(request.user, eliminadas=True), pk=pk)
+    tarea = get_object_or_404(
+        Tarea.objects.filter(eliminada_en__isnull=False).prefetch_related(
+            "asignaciones"
+        ),
+        pk=pk,
+    )
+    if not reglas.puede_ver_tarea(request.user, tarea):
+        denegar(tarea_id=tarea.pk)
     try:
         servicios.recuperar_tarea(request.user, tarea.pk)
     except servicios.OperacionNoPermitida as error:

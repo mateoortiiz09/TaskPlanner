@@ -9,6 +9,7 @@ from unfold.admin import ModelAdmin
 from unfold.forms import AdminPasswordChangeForm as UnfoldAdminPasswordChangeForm
 from unfold.forms import UserChangeForm as UnfoldUserChangeForm
 
+from auditoria.servicios import registrar_evento
 from cuentas.models import Area, Usuario
 from cuentas.roles import ADMINISTRADOR
 from cuentas.servicios import (
@@ -56,7 +57,10 @@ class UsuarioCambioForm(UnfoldUserChangeForm):
 class RestablecerContrasenaForm(UnfoldAdminPasswordChangeForm):
     def save(self, commit=True):
         self.user.debe_cambiar_contrasena = True
-        return super().save(commit=commit)
+        usuario = super().save(commit=commit)
+        if commit:
+            registrar_evento("usuario.contrasena_restablecida", usuario_id=self.user.pk)
+        return usuario
 
 
 @admin.register(Usuario)

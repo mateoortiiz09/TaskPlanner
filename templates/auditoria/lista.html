@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load auditoria_extras %}
+
+{% block titulo %}Auditoría{% endblock %}
+
+{% block contenido %}
+<h1 class="h4 mb-3">Auditoría</h1>
+
+<form method="get" class="row g-2 align-items-end mb-3">
+  <div class="col-auto">
+    <label for="accion" class="form-label">Acción</label>
+    <select id="accion" name="accion" class="form-select">
+      <option value="">Todas</option>
+      {% for valor, texto in opciones %}
+        <option value="{{ valor }}" {% if valor == accion %}selected{% endif %}>{{ texto }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <label for="desde" class="form-label">Desde</label>
+    <input type="date" id="desde" name="desde" value="{{ desde }}" class="form-control">
+  </div>
+  <div class="col-auto">
+    <label for="hasta" class="form-label">Hasta</label>
+    <input type="date" id="hasta" name="hasta" value="{{ hasta }}" class="form-control">
+  </div>
+  <div class="col-auto">
+    <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+  </div>
+</form>
+
+<div class="table-responsive">
+  <table class="table table-sm align-middle">
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Usuario</th>
+        <th>Acción</th>
+        <th>Detalle</th>
+        <th>IP</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for evento in pagina %}
+        <tr>
+          <td class="text-nowrap">{{ evento.fecha_hora|date:"d/m/Y H:i:s" }}</td>
+          <td>{% if evento.actor %}{{ evento.actor.email }}{% else %}Sistema{% endif %}</td>
+          <td>{{ evento.accion|etiqueta_accion }}</td>
+          <td class="small">{{ evento.cambios|detalle_evento }}</td>
+          <td class="small text-muted">{{ evento.ip|default:"—" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-muted">No hay eventos que coincidan con los filtros.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if pagina.paginator.num_pages > 1 %}
+  <nav aria-label="Paginación">
+    <ul class="pagination pagination-sm">
+      {% if pagina.has_previous %}
+        <li class="page-item"><a class="page-link" href="{% querystring page=pagina.previous_page_number %}">Anterior</a></li>
+      {% endif %}
+      <li class="page-item disabled"><span class="page-link">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span></li>
+      {% if pagina.has_next %}
+        <li class="page-item"><a class="page-link" href="{% querystring page=pagina.next_page_number %}">Siguiente</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endif %}
+{% endblock %}
