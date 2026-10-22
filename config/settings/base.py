@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
+from django.urls import reverse_lazy
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -169,6 +170,14 @@ AXES_USERNAME_CALLABLE = "cuentas.axes.usuario_normalizado"
 UNFOLD = {
     "SITE_TITLE": "TaskPlanner",
     "SITE_HEADER": "TaskPlanner · Administración",
+    "SITE_URL": "/",
+    "SITE_DROPDOWN": [
+        {
+            "icon": "arrow_back",
+            "title": "Volver a TaskPlanner",
+            "link": reverse_lazy("inicio"),
+        },
+    ],
     "COLORS": {
         "primary": {
             "50": "oklch(97% 0.014 254.604)",
