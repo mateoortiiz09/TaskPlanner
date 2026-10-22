@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_q",
     "cuentas.apps.CuentasConfig",
     "tareas.apps.TareasConfig",
     "autorizacion.apps.AutorizacionConfig",
@@ -235,3 +236,17 @@ DEFAULT_FROM_EMAIL = (
 )
 TASKPLANNER_URL_BASE = os.environ.get("TASKPLANNER_URL_BASE") or "http://127.0.0.1:8000"
 NOTIFICACIONES_MAX_INTENTOS = int(os.environ.get("NOTIFICACIONES_MAX_INTENTOS") or "5")
+
+# Tareas programadas (Django-Q2 con PostgreSQL como cola)
+Q_CLUSTER = {
+    "name": "taskplanner",
+    "orm": "default",
+    "workers": 2,
+    "timeout": 120,
+    "retry": 300,
+    "max_attempts": 1,
+    "catch_up": False,
+    "save_limit": 250,
+    "label": "Tareas programadas",
+}
+NOTIFICACIONES_HORA_INICIO = int(os.environ.get("NOTIFICACIONES_HORA_INICIO") or "7")
