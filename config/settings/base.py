@@ -250,3 +250,9 @@ Q_CLUSTER = {
     "label": "Tareas programadas",
 }
 NOTIFICACIONES_HORA_INICIO = int(os.environ.get("NOTIFICACIONES_HORA_INICIO") or "7")
+
+# Microsoft Graph (envío real de correo)
+GRAPH_TENANT_ID = os.environ.get("GRAPH_TENANT_ID", "")
+GRAPH_CLIENT_ID = os.environ.get("GRAPH_CLIENT_ID", "")
+GRAPH_CLIENT_SECRET = os.environ.get("GRAPH_CLIENT_SECRET", "")
+GRAPH_REMITENTE = os.environ.get("GRAPH_REMITENTE", "")

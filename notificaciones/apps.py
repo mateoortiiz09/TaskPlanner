@@ -6,4 +6,7 @@ class NotificacionesConfig(AppConfig):
     name = "notificaciones"
 
     def ready(self):
-        from notificaciones import senales  # noqa: F401
+        from notificaciones import (
+            checks,  # noqa: F401
+            senales,  # noqa: F401
+        )
