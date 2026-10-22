@@ -74,7 +74,9 @@ def detalle(request, pk):
 
 @permission_required("tareas.change_tarea", raise_exception=True)
 def editar(request, pk):
-    tarea = get_object_or_404(tareas_visibles(request.user), pk=pk)
+    tarea = get_object_or_404(
+        tareas_visibles(request.user).prefetch_related("asignaciones"), pk=pk
+    )
     if not servicios.puede_editar(request.user, tarea):
         raise PermissionDenied
     form = TareaForm(request.POST or None, instance=tarea, usuario=request.user)

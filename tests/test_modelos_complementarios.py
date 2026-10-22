@@ -5,9 +5,8 @@ from django.utils import timezone
 
 from adjuntos.models import Adjunto, EstadoAnalisis
 from auditoria.models import EventoAuditoria, RegistroInmutableError
-from autorizacion.models import PermisoExplicito
 from notificaciones.models import EstadoNotificacion, Notificacion, TipoNotificacion
-from tareas.models import NivelSensibilidad, Tarea
+from tareas.models import Tarea
 
 pytestmark = pytest.mark.django_db
 
@@ -55,53 +54,13 @@ def test_adjunto_valores_por_defecto(tarea, subgerente):
     primero = crear_adjunto(tarea, subgerente)
     segundo = crear_adjunto(tarea, subgerente)
     assert primero.estado_analisis == EstadoAnalisis.SIN_ANALIZAR
-    assert primero.nivel_sensibilidad == NivelSensibilidad.CONFIDENCIAL
+    assert not hasattr(primero, "nivel_sensibilidad")
     assert primero.nombre_interno != segundo.nombre_interno
-
-
-def test_adjunto_nivel3_sin_cifrar_es_rechazado(tarea, subgerente):
-    with pytest.raises(IntegrityError):
-        crear_adjunto(
-            tarea, subgerente, nivel_sensibilidad=NivelSensibilidad.ALTAMENTE_SENSIBLE
-        )
 
 
 def test_adjunto_cifrado_sin_clave_es_rechazado(tarea, subgerente):
     with pytest.raises(IntegrityError):
         crear_adjunto(tarea, subgerente, cifrado=True)
-
-
-def test_permiso_sobre_tarea_y_adjunto_a_la_vez_es_rechazado(
-    tarea, subgerente, otro_usuario
-):
-    adjunto = crear_adjunto(tarea, subgerente)
-    with pytest.raises(IntegrityError):
-        PermisoExplicito.objects.create(
-            usuario=otro_usuario,
-            tarea=tarea,
-            adjunto=adjunto,
-            otorgado_por=subgerente,
-            motivo="Prueba",
-        )
-
-
-def test_permiso_sin_recurso_es_rechazado(subgerente, otro_usuario):
-    with pytest.raises(IntegrityError):
-        PermisoExplicito.objects.create(
-            usuario=otro_usuario, otorgado_por=subgerente, motivo="Prueba"
-        )
-
-
-def test_permiso_duplicado_es_rechazado(tarea, subgerente, otro_usuario):
-    datos = {
-        "usuario": otro_usuario,
-        "tarea": tarea,
-        "otorgado_por": subgerente,
-        "motivo": "Prueba",
-    }
-    PermisoExplicito.objects.create(**datos)
-    with pytest.raises(IntegrityError):
-        PermisoExplicito.objects.create(**datos)
 
 
 def test_notificacion_valores_por_defecto(tarea, otro_usuario):

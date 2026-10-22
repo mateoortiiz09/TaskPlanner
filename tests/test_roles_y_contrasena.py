@@ -26,13 +26,15 @@ def test_administrador_gestiona_usuarios_pero_no_completa_tareas():
     assert "cuentas.gestionar_usuarios" in permisos
     assert "tareas.completar_tareas" not in permisos
     assert "tareas.cambiar_estado" not in permisos
+    assert "tareas.ver_restringidas" not in permisos
     assert "tareas.conceder_nivel3" not in permisos
 
 
 def test_subgerente_completa_tareas_pero_no_gestiona_usuarios():
     permisos = permisos_del_grupo(SUBGERENTE)
     assert "tareas.completar_tareas" in permisos
-    assert "tareas.conceder_nivel3" in permisos
+    assert "tareas.ver_restringidas" in permisos
+    assert "tareas.conceder_nivel3" not in permisos
     assert "cuentas.gestionar_usuarios" not in permisos
 
 

@@ -2,15 +2,9 @@ from django import forms
 from django.contrib.auth import get_user_model
 
 from cuentas.roles import LIDER_AREA
-from tareas.models import NivelSensibilidad, Tarea
+from tareas.models import Tarea
 
-CAMPOS_TAREA = [
-    "nombre",
-    "descripcion",
-    "fecha_limite",
-    "prioridad",
-    "nivel_sensibilidad",
-]
+CAMPOS_TAREA = ["nombre", "descripcion", "fecha_limite", "prioridad", "restringida"]
 
 
 def lideres_disponibles():
@@ -50,15 +44,13 @@ class TareaForm(forms.ModelForm):
             "descripcion": "Descripción",
             "fecha_limite": "Fecha límite",
             "prioridad": "Prioridad",
-            "nivel_sensibilidad": "Nivel de sensibilidad",
+            "restringida": "Información restringida",
         }
         help_texts = {
-            "nivel_sensibilidad": (
-                "Nivel 1: información interna del día a día. "
-                "Nivel 2: confidencial (contratos, presupuestos, actas). "
-                "Nivel 3: altamente sensible (datos de clientes, nómina, "
-                "información financiera o jurídica); solo la ven la Subgerente "
-                "y quienes ella autorice. Ante la duda, elige el nivel más alto."
+            "restringida": (
+                "Márcala si la tarea contiene datos de clientes, nómina, "
+                "información financiera, jurídica u otra información confidencial. "
+                "El Administrador no verá su contenido."
             ),
         }
         widgets = {
@@ -68,7 +60,7 @@ class TareaForm(forms.ModelForm):
                 attrs={"class": "form-control", "type": "date"}, format="%Y-%m-%d"
             ),
             "prioridad": forms.Select(attrs={"class": "form-select"}),
-            "nivel_sensibilidad": forms.Select(attrs={"class": "form-select"}),
+            "restringida": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
     def __init__(self, *args, usuario, **kwargs):
@@ -80,14 +72,7 @@ class TareaForm(forms.ModelForm):
             )
             self.fields["version"].initial = self.instance.version
         if not usuario.has_perm("tareas.reclasificar_sensibilidad"):
-            if self.instance.pk:
-                self.fields["nivel_sensibilidad"].disabled = True
-            else:
-                self.fields["nivel_sensibilidad"].choices = [
-                    opcion
-                    for opcion in NivelSensibilidad.choices
-                    if opcion[0] != NivelSensibilidad.ALTAMENTE_SENSIBLE
-                ]
+            del self.fields["restringida"]
         if not self.fields["responsables"].queryset.exists():
             self.fields["responsables"].help_text = (
                 "No hay líderes disponibles. En Administración, el usuario debe "
@@ -95,4 +80,8 @@ class TareaForm(forms.ModelForm):
             )
 
     def datos_tarea(self):
-        return {campo: self.cleaned_data[campo] for campo in CAMPOS_TAREA}
+        return {
+            campo: self.cleaned_data[campo]
+            for campo in CAMPOS_TAREA
+            if campo in self.cleaned_data
+        }

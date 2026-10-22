@@ -12,7 +12,6 @@ from tareas.consultas import tareas_visibles
 from tareas.models import (
     Cumplimiento,
     EstadoAvance,
-    NivelSensibilidad,
     ResponsableTarea,
     Tarea,
 )
@@ -54,7 +53,7 @@ def datos_formulario(responsables, **cambios):
         "descripcion": "Revisión mensual",
         "fecha_limite": (hoy() + datetime.timedelta(days=5)).isoformat(),
         "prioridad": "MEDIA",
-        "nivel_sensibilidad": "2",
+        "restringida": "",
         "responsables": [usuario.pk for usuario in responsables],
     }
     datos.update(cambios)
@@ -118,13 +117,15 @@ def test_el_formulario_exige_responsables(client, subgerente):
     assert not Tarea.objects.exists()
 
 
-def test_administrador_no_puede_crear_tareas_de_nivel_3(client, administrador, lideres):
+def test_administrador_no_puede_marcar_tareas_como_restringidas(
+    client, administrador, lideres
+):
     client.force_login(administrador)
     respuesta = client.post(
-        reverse("tareas:crear"), datos_formulario(lideres, nivel_sensibilidad="3")
+        reverse("tareas:crear"), datos_formulario(lideres, restringida="on")
     )
-    assert respuesta.status_code == 200
-    assert not Tarea.objects.exists()
+    assert respuesta.status_code == 302
+    assert Tarea.objects.get().restringida is False
 
 
 def test_editar_tarea_actualiza_datos_y_version(client, subgerente, lideres):
@@ -248,13 +249,13 @@ def test_lider_solo_ve_sus_tareas(client, subgerente, lideres):
     assert "Tarea de Calidad" not in contenido
 
 
-def test_administrador_no_edita_tareas_de_nivel_3(
+def test_administrador_no_edita_tareas_restringidas(
     client, subgerente, administrador, lideres
 ):
     tarea = crear_tarea(
         subgerente,
         lideres[:1],
-        nivel_sensibilidad=NivelSensibilidad.ALTAMENTE_SENSIBLE,
+        restringida=True,
     )
     client.force_login(administrador)
     respuesta = client.get(reverse("tareas:editar", args=[tarea.pk]))

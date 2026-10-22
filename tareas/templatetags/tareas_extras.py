@@ -1,9 +1,16 @@
 from django import template
 
+from autorizacion.reglas import puede_ver_contenido
 from tareas.models import EstadoAvance
 from tareas.vencimientos import SituacionTemporal, calcular_situacion, dias_restantes
 
 register = template.Library()
+
+
+@register.simple_tag
+def contenido_visible(usuario, tarea):
+    return puede_ver_contenido(usuario, tarea)
+
 
 CLASES_SITUACION = {
     SituacionTemporal.EN_TIEMPO: "text-bg-success",

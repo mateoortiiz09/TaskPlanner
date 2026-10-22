@@ -7,7 +7,6 @@ from cuentas.models import Area
 from tareas.models import (
     Cumplimiento,
     EstadoAvance,
-    NivelSensibilidad,
     Prioridad,
     ResponsableTarea,
     Tarea,
@@ -54,7 +53,7 @@ def test_valores_por_defecto(subgerente):
     tarea = crear_tarea(subgerente)
     assert tarea.prioridad == Prioridad.MEDIA
     assert tarea.estado == EstadoAvance.PENDIENTE
-    assert tarea.nivel_sensibilidad == NivelSensibilidad.CONFIDENCIAL
+    assert tarea.restringida is False
     assert tarea.version == 1
     assert tarea.fecha_asignacion == timezone.localdate()
     assert not tarea.eliminada
@@ -92,11 +91,6 @@ def test_responsable_sin_area_es_rechazado(subgerente):
     tarea = crear_tarea(subgerente)
     with pytest.raises(IntegrityError):
         ResponsableTarea.objects.create(tarea=tarea, usuario=subgerente)
-
-
-def test_nivel_fuera_de_rango_es_rechazado(subgerente):
-    with pytest.raises(IntegrityError):
-        crear_tarea(subgerente, nivel_sensibilidad=4)
 
 
 def test_completada_sin_datos_de_finalizacion_es_rechazada(subgerente):

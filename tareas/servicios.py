@@ -2,10 +2,10 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.utils import timezone
 
+from autorizacion.reglas import puede_editar  # noqa: F401
 from tareas.models import (
     Cumplimiento,
     EstadoAvance,
-    NivelSensibilidad,
     ResponsableTarea,
     Tarea,
 )
@@ -24,20 +24,6 @@ def _exigir(usuario, permiso):
         raise PermissionDenied
 
 
-def puede_editar(usuario, tarea):
-    """Provisional hasta la fase 10 para las reglas de nivel 3."""
-    if tarea.eliminada or tarea.estado == EstadoAvance.COMPLETADA:
-        return False
-    if not usuario.has_perm("tareas.change_tarea"):
-        return False
-    if (
-        tarea.nivel_sensibilidad == NivelSensibilidad.ALTAMENTE_SENSIBLE
-        and not usuario.has_perm("tareas.reclasificar_sensibilidad")
-    ):
-        return False
-    return True
-
-
 def _sincronizar_responsables(tarea, responsables):
     nuevos = {usuario.pk: usuario for usuario in responsables}
     tarea.asignaciones.exclude(usuario_id__in=nuevos).delete()
@@ -50,7 +36,7 @@ def _sincronizar_responsables(tarea, responsables):
 @transaction.atomic
 def crear_tarea(usuario, datos, responsables):
     _exigir(usuario, "tareas.add_tarea")
-    if datos.get("nivel_sensibilidad") == NivelSensibilidad.ALTAMENTE_SENSIBLE:
+    if datos.get("restringida"):
         _exigir(usuario, "tareas.reclasificar_sensibilidad")
     tarea = Tarea.objects.create(creada_por=usuario, **datos)
     _sincronizar_responsables(tarea, responsables)
@@ -64,8 +50,7 @@ def actualizar_tarea(usuario, tarea_id, datos, responsables, version):
         raise PermissionDenied
     if tarea.version != version:
         raise ConflictoDeVersion
-    nuevo_nivel = datos.get("nivel_sensibilidad", tarea.nivel_sensibilidad)
-    if nuevo_nivel != tarea.nivel_sensibilidad:
+    if datos.get("restringida", tarea.restringida) != tarea.restringida:
         _exigir(usuario, "tareas.reclasificar_sensibilidad")
     for campo, valor in datos.items():
         setattr(tarea, campo, valor)

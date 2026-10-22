@@ -1,15 +1,16 @@
 {% extends "base.html" %}
 {% load tareas_extras %}
 
-{% block titulo %}{{ tarea.nombre }}{% endblock %}
+{% block titulo %}{% contenido_visible user tarea as puede_ver_contenido %}{% if puede_ver_contenido %}{{ tarea.nombre }}{% else %}Tarea restringida{% endif %}{% endblock %}
 
 {% block contenido %}
+{% contenido_visible user tarea as puede_ver_contenido %}
 <div class="d-flex justify-content-between align-items-start mb-3">
   <div>
-    <h1 class="h4 mb-1">{{ tarea.nombre }}</h1>
+    <h1 class="h4 mb-1">{% if puede_ver_contenido %}{{ tarea.nombre }}{% else %}Tarea restringida{% endif %}</h1>
     <span class="badge text-bg-secondary">{{ tarea.get_estado_display }}</span>
     <span class="badge {{ tarea|situacion_clase }}">{{ tarea|situacion }}</span>
-    <span class="badge text-bg-light border">{{ tarea.get_nivel_sensibilidad_display }}</span>
+    {% if tarea.restringida %}<span class="badge text-bg-warning">Restringida</span>{% endif %}
   </div>
   <div class="d-flex gap-2">
     {% if puede_editar %}
@@ -38,17 +39,19 @@
 {% endif %}
 
 <dl class="row">
-  <dt class="col-sm-3">Descripción</dt>
-  <dd class="col-sm-9">{{ tarea.descripcion|linebreaksbr }}</dd>
+  {% if puede_ver_contenido %}
+    <dt class="col-sm-3">Descripción</dt>
+    <dd class="col-sm-9">{{ tarea.descripcion|linebreaksbr }}</dd>
 
-  <dt class="col-sm-3">Responsables</dt>
-  <dd class="col-sm-9">
-    <ul class="list-unstyled mb-0">
-      {% for asignacion in tarea.asignaciones.all %}
-        <li>{{ asignacion.usuario.get_full_name|default:asignacion.usuario.email }} — {{ asignacion.area }}</li>
-      {% endfor %}
-    </ul>
-  </dd>
+    <dt class="col-sm-3">Responsables</dt>
+    <dd class="col-sm-9">
+      <ul class="list-unstyled mb-0">
+        {% for asignacion in tarea.asignaciones.all %}
+          <li>{{ asignacion.usuario.get_full_name|default:asignacion.usuario.email }} — {{ asignacion.area }}</li>
+        {% endfor %}
+      </ul>
+    </dd>
+  {% endif %}
 
   <dt class="col-sm-3">Prioridad</dt>
   <dd class="col-sm-9">{{ tarea.get_prioridad_display }}</dd>

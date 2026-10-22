@@ -18,12 +18,6 @@ class EstadoAvance(models.TextChoices):
     COMPLETADA = "COMPLETADA", "Completada"
 
 
-class NivelSensibilidad(models.IntegerChoices):
-    INTERNA = 1, "Nivel 1 - Interna"
-    CONFIDENCIAL = 2, "Nivel 2 - Confidencial"
-    ALTAMENTE_SENSIBLE = 3, "Nivel 3 - Altamente sensible"
-
-
 class Cumplimiento(models.TextChoices):
     DENTRO_DEL_PLAZO = "DENTRO", "Dentro del plazo"
     FUERA_DEL_PLAZO = "FUERA", "Fuera del plazo"
@@ -41,10 +35,10 @@ class Tarea(models.Model):
         choices=EstadoAvance.choices,
         default=EstadoAvance.PENDIENTE,
     )
-    nivel_sensibilidad = models.PositiveSmallIntegerField(
-        "nivel de sensibilidad",
-        choices=NivelSensibilidad.choices,
-        default=NivelSensibilidad.CONFIDENCIAL,
+    restringida = models.BooleanField(
+        "información restringida",
+        default=False,
+        help_text="Solo la Subgerente y los responsables ven su contenido.",
     )
     fecha_asignacion = models.DateField(
         "fecha de asignación", default=timezone.localdate
@@ -102,10 +96,10 @@ class Tarea(models.Model):
             ("cambiar_estado", "Puede cambiar el estado de avance"),
             ("completar_tareas", "Puede completar tareas"),
             ("eliminar_recuperar_tareas", "Puede eliminar y recuperar tareas"),
-            ("conceder_nivel3", "Puede conceder acceso a nivel 3"),
+            ("ver_restringidas", "Puede ver el contenido de las tareas restringidas"),
             (
                 "reclasificar_sensibilidad",
-                "Puede reclasificar el nivel de sensibilidad",
+                "Puede marcar o desmarcar tareas como restringidas",
             ),
         ]
         indexes = [
@@ -122,10 +116,6 @@ class Tarea(models.Model):
             models.CheckConstraint(
                 condition=Q(estado__in=EstadoAvance.values),
                 name="tarea_estado_valido",
-            ),
-            models.CheckConstraint(
-                condition=Q(nivel_sensibilidad__in=NivelSensibilidad.values),
-                name="tarea_nivel_valido",
             ),
             models.CheckConstraint(
                 condition=(

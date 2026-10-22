@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tareas_extras %}
 
 {% block titulo %}Papelera{% endblock %}
 
@@ -16,8 +17,9 @@
     </thead>
     <tbody>
       {% for tarea in tareas %}
+        {% contenido_visible user tarea as puede_ver_contenido %}
         <tr>
-          <td>{{ tarea.nombre }}</td>
+          <td>{% if puede_ver_contenido %}{{ tarea.nombre }}{% else %}Tarea restringida{% endif %}</td>
           <td>{{ tarea.eliminada_por }}</td>
           <td>{{ tarea.eliminada_en|date:"d/m/Y H:i" }}</td>
           <td class="text-end">

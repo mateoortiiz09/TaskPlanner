@@ -14,13 +14,16 @@
     </thead>
     <tbody>
       {% for tarea in pagina %}
+        {% contenido_visible user tarea as puede_ver_contenido %}
         <tr class="fila-clicable" data-href="{% url 'tareas:detalle' tarea.pk %}" tabindex="0">
-          <td><a href="{% url 'tareas:detalle' tarea.pk %}">{{ tarea.nombre }}</a></td>
-          <td>{{ tarea|areas_de }}</td>
+          <td><a href="{% url 'tareas:detalle' tarea.pk %}">{% if puede_ver_contenido %}{{ tarea.nombre }}{% else %}Tarea restringida{% endif %}</a></td>
+          <td>{% if puede_ver_contenido %}{{ tarea|areas_de }}{% else %}—{% endif %}</td>
           <td>
-            {% for asignacion in tarea.asignaciones.all %}
-              {{ asignacion.usuario.get_full_name|default:asignacion.usuario.email }}{% if not forloop.last %}, {% endif %}
-            {% endfor %}
+            {% if puede_ver_contenido %}
+              {% for asignacion in tarea.asignaciones.all %}
+                {{ asignacion.usuario.get_full_name|default:asignacion.usuario.email }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            {% else %}—{% endif %}
           </td>
           <td>{{ tarea.get_prioridad_display }}</td>
           <td>
