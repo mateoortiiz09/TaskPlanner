@@ -1,0 +1,7 @@
+{% autoescape off %}Hola, {{ destinatario.get_full_name|default:destinatario.email }}:
+
+Se le asignó una nueva tarea en TaskPlanner.
+
+{% include "correos/_tarea.txt" %}
+
+Este es un mensaje automático. No responda a este correo.{% endautoescape %}

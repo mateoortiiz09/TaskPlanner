@@ -1,0 +1,6 @@
+<table style="border-collapse:collapse;margin:16px 0;">
+  <tr><td style="padding:4px 12px 4px 0;color:#6b7280;">Tarea</td><td style="padding:4px 0;"><strong>{{ tarea.nombre }}</strong></td></tr>
+  <tr><td style="padding:4px 12px 4px 0;color:#6b7280;">Prioridad</td><td style="padding:4px 0;">{{ tarea.get_prioridad_display }}</td></tr>
+  <tr><td style="padding:4px 12px 4px 0;color:#6b7280;">Fecha límite</td><td style="padding:4px 0;">{{ tarea.fecha_limite|date:"d/m/Y" }}</td></tr>
+</table>
+<p><a href="{{ url_tarea }}" style="display:inline-block;background:#1d4ed8;color:#ffffff;padding:10px 16px;border-radius:6px;text-decoration:none;">Ver la tarea</a></p>

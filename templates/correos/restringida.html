@@ -1,0 +1,6 @@
+{% extends "correos/_base.html" %}
+{% block contenido %}
+<p>Hola, {{ destinatario.get_full_name|default:destinatario.email }}:</p>
+<p>Hay una actualización en una tarea restringida relacionada con usted. Por seguridad, su contenido solo puede consultarse dentro del sistema.</p>
+<p><a href="{{ url_tarea }}" style="display:inline-block;background:#1d4ed8;color:#ffffff;padding:10px 16px;border-radius:6px;text-decoration:none;">Ingresar a TaskPlanner</a></p>
+{% endblock %}

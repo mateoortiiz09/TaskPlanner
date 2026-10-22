@@ -32,6 +32,9 @@ def _sincronizar_responsables(tarea, responsables):
     for pk, usuario in nuevos.items():
         if pk not in existentes:
             ResponsableTarea.objects.create(tarea=tarea, usuario=usuario)
+            from notificaciones.servicios import notificar_asignacion
+
+            notificar_asignacion(tarea, usuario)
 
 
 @transaction.atomic

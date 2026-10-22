@@ -1,0 +1,8 @@
+{% extends "correos/_base.html" %}
+{% block contenido %}
+<p>Hola, {{ destinatario.get_full_name|default:destinatario.email }}:</p>
+<p>El usuario <strong>{{ usuario }}</strong> fue {{ operacion }} el grupo <strong>{{ grupos }}</strong>.</p>
+<p>Cambio realizado por: {{ por }}</p>
+<p>Si no reconoce este cambio, revíselo de inmediato en el panel de administración.</p>
+<p><a href="{{ url_inicio }}" style="color:#1d4ed8;">Ingresar a TaskPlanner</a></p>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% autoescape off %}Hola, {{ destinatario.get_full_name|default:destinatario.email }}:
+
+Hay una actualización en una tarea restringida relacionada con usted. Por seguridad, su contenido solo puede consultarse dentro del sistema.
+
+Ingresar: {{ url_tarea }}
+
+Este es un mensaje automático. No responda a este correo.{% endautoescape %}

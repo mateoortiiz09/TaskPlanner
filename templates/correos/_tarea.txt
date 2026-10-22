@@ -1,0 +1,5 @@
+{% autoescape off %}Tarea: {{ tarea.nombre }}
+Prioridad: {{ tarea.get_prioridad_display }}
+Fecha límite: {{ tarea.fecha_limite|date:"d/m/Y" }}
+
+Ver la tarea: {{ url_tarea }}{% endautoescape %}

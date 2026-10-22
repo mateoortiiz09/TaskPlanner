@@ -214,3 +214,24 @@ ANTIVIRUS_ACTIVO = (os.environ.get("ANTIVIRUS_ACTIVO") or "False").strip().lower
 ANTIVIRUS_COMANDO = (
     os.environ.get("ANTIVIRUS_COMANDO") or "clamdscan --no-summary --fdpass"
 )
+
+# Correo y notificaciones
+EMAIL_BACKEND = (
+    os.environ.get("EMAIL_BACKEND") or "django.core.mail.backends.smtp.EmailBackend"
+)
+EMAIL_HOST = os.environ.get("EMAIL_HOST") or "localhost"
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT") or "1025")
+EMAIL_USE_TLS = (os.environ.get("EMAIL_USE_TLS") or "False").strip().lower() in {
+    "1",
+    "true",
+    "si",
+    "sí",
+    "yes",
+}
+EMAIL_TIMEOUT = 15
+DEFAULT_FROM_EMAIL = (
+    os.environ.get("DEFAULT_FROM_EMAIL")
+    or "TaskPlanner <notificaciones@proscience.local>"
+)
+TASKPLANNER_URL_BASE = os.environ.get("TASKPLANNER_URL_BASE") or "http://127.0.0.1:8000"
+NOTIFICACIONES_MAX_INTENTOS = int(os.environ.get("NOTIFICACIONES_MAX_INTENTOS") or "5")

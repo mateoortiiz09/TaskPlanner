@@ -1,0 +1,10 @@
+{% autoescape off %}Hola, {{ destinatario.get_full_name|default:destinatario.email }}:
+
+El usuario {{ usuario }} fue {{ operacion }} el grupo {{ grupos }}.
+Cambio realizado por: {{ por }}
+
+Si no reconoce este cambio, revíselo de inmediato en el panel de administración.
+
+Ingresar: {{ url_inicio }}
+
+Este es un mensaje automático. No responda a este correo.{% endautoescape %}

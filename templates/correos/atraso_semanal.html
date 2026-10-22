@@ -1,0 +1,6 @@
+{% extends "correos/_base.html" %}
+{% block contenido %}
+<p>Hola, {{ destinatario.get_full_name|default:destinatario.email }}:</p>
+<p>Esta tarea sigue atrasada. Por favor, revise su estado.</p>
+{% include "correos/_tarea.html" %}
+{% endblock %}
