@@ -1,5 +1,6 @@
 from django.urls import path
 
+from adjuntos import views as adjuntos_views
 from tareas import views
 
 app_name = "tareas"
@@ -14,4 +15,10 @@ urlpatterns = [
     path("<int:pk>/completar/", views.completar, name="completar"),
     path("<int:pk>/eliminar/", views.eliminar, name="eliminar"),
     path("<int:pk>/recuperar/", views.recuperar, name="recuperar"),
+    path("<int:pk>/adjuntos/subir/", adjuntos_views.subir, name="adjunto_subir"),
+    path(
+        "<int:pk>/adjuntos/<int:adjunto_id>/",
+        adjuntos_views.descargar,
+        name="adjunto_descargar",
+    ),
 ]

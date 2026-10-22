@@ -1,0 +1,27 @@
+{% load tareas_extras %}
+{% adjuntar_permitido user tarea as puede_adjuntar %}
+<section class="mt-4 mb-4">
+  <h2 class="h5">Archivos adjuntos</h2>
+  {% with adjuntos=tarea.adjuntos.all %}
+    {% if adjuntos %}
+      <ul class="list-group mb-3">
+        {% for adjunto in adjuntos %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a href="{% url 'tareas:adjunto_descargar' tarea.pk adjunto.pk %}">{{ adjunto.nombre_original }}</a>
+            <span class="small text-muted">{{ adjunto.tamano_bytes|filesizeformat }} · {{ adjunto.get_estado_analisis_display }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted">No hay archivos adjuntos.</p>
+    {% endif %}
+  {% endwith %}
+  {% if puede_adjuntar %}
+    <form method="post" action="{% url 'tareas:adjunto_subir' tarea.pk %}" enctype="multipart/form-data" class="d-flex gap-2 align-items-center">
+      {% csrf_token %}
+      <input type="file" name="archivo" class="form-control w-auto" accept=".pdf,.docx,.xlsx,.png,.jpg,.jpeg" required>
+      <button type="submit" class="btn btn-outline-primary">Adjuntar</button>
+    </form>
+    <div class="form-text">PDF, DOCX, XLSX, PNG o JPG. Máximo {% adjuntos_tamano_max_mb %} MB.</div>
+  {% endif %}
+</section>

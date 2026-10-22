@@ -46,6 +46,7 @@ def crear_tarea(usuario, datos, responsables):
 @transaction.atomic
 def actualizar_tarea(usuario, tarea_id, datos, responsables, version):
     tarea = Tarea.objects.select_for_update().get(pk=tarea_id)
+    era_restringida = tarea.restringida
     if not puede_editar(usuario, tarea):
         raise PermissionDenied
     if tarea.version != version:
@@ -57,6 +58,10 @@ def actualizar_tarea(usuario, tarea_id, datos, responsables, version):
     tarea.version += 1
     tarea.save()
     _sincronizar_responsables(tarea, responsables)
+    if tarea.restringida and not era_restringida:
+        from adjuntos.servicios import cifrar_adjuntos_de_tarea
+
+        cifrar_adjuntos_de_tarea(tarea)
     return tarea
 
 

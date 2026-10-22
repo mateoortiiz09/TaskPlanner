@@ -1,6 +1,7 @@
 from django import template
+from django.conf import settings
 
-from autorizacion.reglas import puede_ver_contenido
+from autorizacion.reglas import puede_adjuntar, puede_ver_contenido
 from tareas.models import EstadoAvance
 from tareas.vencimientos import SituacionTemporal, calcular_situacion, dias_restantes
 
@@ -10,6 +11,16 @@ register = template.Library()
 @register.simple_tag
 def contenido_visible(usuario, tarea):
     return puede_ver_contenido(usuario, tarea)
+
+
+@register.simple_tag
+def adjuntar_permitido(usuario, tarea):
+    return puede_adjuntar(usuario, tarea)
+
+
+@register.simple_tag
+def adjuntos_tamano_max_mb():
+    return settings.ADJUNTOS_TAMANO_MAX_MB
 
 
 CLASES_SITUACION = {

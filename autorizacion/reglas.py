@@ -46,3 +46,7 @@ def puede_editar(usuario, tarea):
     if not usuario.has_perm("tareas.change_tarea"):
         return False
     return puede_ver_contenido(usuario, tarea)
+
+
+def puede_adjuntar(usuario, tarea):
+    return usuario.has_perm("adjuntos.add_adjunto") and puede_editar(usuario, tarea)

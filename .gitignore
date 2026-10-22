@@ -227,3 +227,5 @@ Thumbs.db
 
 # Traducciones propias compiladas (sí se versionan)
 !locale/**/*.mo
+
+almacen_adjuntos/

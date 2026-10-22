@@ -187,3 +187,20 @@ UNFOLD = {
 }
 
 DIAS_EN_RIESGO = env_int("DIAS_EN_RIESGO", 2)
+
+# Adjuntos
+ADJUNTOS_DIR = Path(
+    os.environ.get("ADJUNTOS_DIR") or str(BASE_DIR / "almacen_adjuntos")
+)
+ADJUNTOS_CLAVE_MAESTRA = os.environ.get("ADJUNTOS_CLAVE_MAESTRA", "")
+ADJUNTOS_TAMANO_MAX_MB = int(os.environ.get("ADJUNTOS_TAMANO_MAX_MB") or "20")
+ANTIVIRUS_ACTIVO = (os.environ.get("ANTIVIRUS_ACTIVO") or "False").strip().lower() in {
+    "1",
+    "true",
+    "si",
+    "sí",
+    "yes",
+}
+ANTIVIRUS_COMANDO = (
+    os.environ.get("ANTIVIRUS_COMANDO") or "clamdscan --no-summary --fdpass"
+)

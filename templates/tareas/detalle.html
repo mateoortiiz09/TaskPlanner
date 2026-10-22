@@ -75,5 +75,6 @@
   {% endif %}
 </dl>
 
+{% if puede_ver_contenido %}{% include "adjuntos/_seccion.html" %}{% endif %}
 <a href="{% url 'tareas:lista' %}">Volver a tareas</a>
 {% endblock %}
